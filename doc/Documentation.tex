@@ -1,0 +1,112 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+\usepackage{color}
+\usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{graphicx}
+
+\usepackage{amsmath,amssymb,amsthm,mleftright}
+\usepackage{mathtools} % For cases environment
+%\usepackage[a4paper]{geometry}
+\usepackage[round]{natbib}
+\usepackage{float}
+\usepackage{nicefrac}
+\usepackage{placeins} % This gives the \FloatBarrier command
+\usepackage{subcaption}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage{url}
+\usepackage{multicol}
+\usepackage{minted}
+\usepackage{titlesec} %to singlespace the headings
+
+\usepackage[minmargin=0.1\textwidth,labelfont=bf, font=footnotesize, labelsep=period]{caption}
+
+% hyperref
+% Got these values from Stan manual
+\usepackage[%backref=page, 
+            pdfpagelabels,
+            plainpages=false,
+            hypertexnames=true,
+            colorlinks=true,
+            linkcolor=linkcolor,
+            anchorcolor=linkcolor,
+            citecolor=linkcolor,
+            filecolor=linkcolor,
+            menucolor=linkcolor,
+            runcolor=linkcolor,
+            urlcolor=linkcolor,
+            pdfborder={0 0 0} , 
+            hidelinks]{hyperref} 
+
+\captionsetup[subfigure]{minmargin=0.1\textwidth}
+
+%to singlespace the headings
+
+\titleformat{\chapter}[display]
+{\singlespacing\normalfont\Huge\bfseries\raggedright}{\chaptername\ \thechapter}{1em}{}
+\titleformat{\section}
+{\singlespacing\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\singlespacing\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\singlespacing\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% % File that fixes and activates the line numbers
+% \input{fixlinenumbers.tex}
+
+% % showkeys
+% \usepackage[notcite,notref]{showkeys}
+% \renewcommand\showkeyslabelformat[1]{%
+% {\normalfont\scriptsize\ttfamily#1}}
+
+% Also from Stan manual
+\definecolor{linkcolor}{RGB}{0,0,128}
+
+% Setup the fancyvrb (which is called by minted)
+\fvset{frame=single}
+% Fix to make the code single spaced
+% Took it from the fancyvrb manual and added my own fix
+\makeatletter
+\def\FV@SetupFont{%
+ \FV@BaseLineStretch
+ \ifx\@currsize\small\normalsize\else\small\fi\@currsize
+ \linespread{1} % this makes the verbatim fonts single spaced
+ \FV@FontSize
+ \FV@FontFamily}
+\makeatother
+
+
+%\renewcommand{\familydefault}{\sfdefault} % change the font to sans serif
+
+% make the quotes become singlespacing
+\expandafter\def\expandafter\quote\expandafter{\quote\singlespacing}
+\expandafter\def\expandafter\quotation\expandafter{\quotation\singlespacing}
+
+\interfootnotelinepenalty=10000 % to ensure footnotes stay on the same page
+
+% \allowdisplaybreaks[1] %{amsmath} -- allows formulas to span multiple pages
+
+
+%DW's commands
+\renewcommand{\vec}{\boldsymbol}
+\DeclareMathOperator{\E}{\mathrm{E}}
+\DeclareMathOperator{\Var}{\mathrm{Var}}
+
+
+\title{
+Survival models in Stan
+}
+\author{D.W. Bester}
+\date{}
+
+\begin{document}
+
+
+\maketitle
+
+
+\end{document}
