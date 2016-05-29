@@ -1,15 +1,28 @@
-# Readme
+# Survival models in Stan
 
-Each of the folders labelled `Model#` contains an R file and a stan model file.
-The R file simulates data according to hazard rate with known parameters, and then the stan file tries to fit the model and recover these parameters.
+This repository is a primer for getting survival models working in Stan (Stan Development Team, 2015).
+It focusses on the following two topics:
+
+  1. Censored observations
+  2. Arbitrary hazard rate functions
+
+Censoring is one of the characteristics that often make survival analysis hard to implement.
+While there are packages that implement specific cases (like the `survival` library in R (R Core Team, 2016), which is great for Cox proportional hazards models), going beyond their limited scope is tedious.
+Markov Chain Monte Carlo (MCMC) packages like [JAGS](http://mcmc-jags.sourceforge.net/) and [Stan](http://mc-stan.org/) provide a framework to specify flexible statistical models using probabilistic statements
+These go a long way towards making survival models easier, but you are often still required to construct the likelihoods yourself as survival models don't form part of the included syntax (see [this question on Stack Overflow, for example](http://stackoverflow.com/questions/28537323/flexible-survival-models-in-r/28552752#28552752)).
+
+# Details
+
 
 Coding up complicated survival models in the MCMC languages is error-prone.
 Even if the code executes successfully, it may be giving erroneous output and locating errors is a frustrating process.
 The approach we follow here is to build a selection of simpler models, while validating them using simulated data. These models can then be used as a stepping stone for more complicated models.
 
-Thus, the model files in this repository serve as a proof of concept to get survival models running in Stan (Stan Development Team, 2015).
+Each of the folders labelled `Model#` contains an R file and a stan model file.
+The R file simulates data according to hazard rate with known parameters, and then the stan file tries to fit the model and recover these parameters.
+The model files in this repository serve as a proof of concept to get survival models running in Stan.
 They start with a simple model and progress to more complicated models thereafter.
-They can also serve as an audit trial of the model development process.
+They can also serve as an audit trail of the model development process.
 
 
 ## Running the code
@@ -36,6 +49,9 @@ A description of the models can be found in the [documentation pdf](doc/Document
 
 
 # References
+
+R Core Team (2016). R: A language and environment for statistical computing. R Foundation for Statistical
+Computing, Vienna, Austria. URL https://www.R-project.org/.
 
 Stan Development Team (2015). *Stan: A C++ Library for Probability and
 Sampling, Version 2.8.0.* URL http://mc-stan.org/.
