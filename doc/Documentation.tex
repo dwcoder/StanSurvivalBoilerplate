@@ -10,7 +10,7 @@
 
 \usepackage{amsmath,amssymb,amsthm,mleftright}
 \usepackage{mathtools} % For cases environment
-%\usepackage[a4paper]{geometry}
+\usepackage[a4paper]{geometry}
 \usepackage[round]{natbib}
 \usepackage{float}
 \usepackage{nicefrac}
@@ -28,7 +28,7 @@
 
 % hyperref
 % Got these values from Stan manual
-\usepackage[%backref=page, 
+\usepackage[backref=page,
             pdfpagelabels,
             plainpages=false,
             hypertexnames=true,
@@ -40,8 +40,8 @@
             menucolor=linkcolor,
             runcolor=linkcolor,
             urlcolor=linkcolor,
-            pdfborder={0 0 0} , 
-            hidelinks]{hyperref} 
+            pdfborder={0 0 0} ,
+            hidelinks]{hyperref}
 
 
 %to singlespace the headings
@@ -97,9 +97,7 @@
 \DeclareMathOperator{\Var}{\mathrm{Var}}
 
 
-\title{
-Survival models in Stan
-}
+\title{Survival models in Stan}
 \author{D.W. Bester}
 \date{}
 
@@ -115,9 +113,9 @@ Survival models in Stan
 This is a survival model, where events happen according to the the
 hazard rate:
 \begin{align*}
-h(t) 
+h(t)
 &= B e^{\theta t} \\
-H(t) 
+H(t)
 &= \int_0^t{h(x)dx} \\
 &= \frac{B}{\theta} \left( e^{\theta t}-1  \right)
 \end{align*}
@@ -165,8 +163,8 @@ $\theta_j$ measures the influence of time on the hazard rate for group
 $j$, and $\beta$ measures the influence of covariate $x$, assuming
 the influence is global over all groups.
 
-\section{Likelihood, estimation, and choice of prior
-parameters}
+\section{Likelihood, estimation, and choice of prior parameters}
+\label{sec:likelihoodandpriors}
 
 All of our models assume that survival times come from a process with
 hazard rate $h(t)$, and we can use a Poisson process to show the
@@ -189,20 +187,19 @@ $(v_i, \delta_i)$ where $\delta_i$ is an indicator taking 1 if
 $T_i \leq C_i$ and 0 otherwise. Thus, $\delta_i$ is an event
 indicator, and it will be equal to the number of events at time $t$.
 
-The Poisson process (and some algebra) provides the the likelihood
-contribution of the observation pair $(v_i, \delta_i)$:
+The likelihood contribution of the observation pair $(v_i, \delta_i)$ is
 \begin{align*}
 \mathcal{L}\left(\theta |(v_i,\delta_i) \right)
 &= S(v_i)^{\delta_i} f(v_i)^{(1-\delta_i)} \\
 &= h(v_i)^{\delta_i} \exp{\left( - \int_0^{v_i}{h(x)dx} \right)} \\
 &= h(v_i)^{\delta_i} \exp{\left( - H(v_i) \right)}
 \end{align*}
-where $\theta$ is the set of all parameters. This is the likelihood we
-need to add to MCMC software if we want to fit survival
-models.\footnote{MCMC software like Stan and JAGS do provide Poisson
-  densities, but we can only use them if the hazard rate is constant.
-  For more complicated hazard rate functions, we have to resort to more
-  tedious measures. Since the likelihood contains both $h(t)$ and $H(t)$, we need to add these time-varying functions to the sampler.} The point of this repository is to show how this can done using Stan's \texttt{functions} block.
+where $\theta$ is the set of all parameters.
+We will derive this likelihood in appendix \ref{ap:derivation}.
+This is the likelihood we need to add to MCMC software if we want to fit survival models.\footnote{MCMC software like Stan and JAGS do provide Poisson densities, but we can only use them in special cases --- if the hazard rate is constant or piecewise constant.
+For more complicated hazard rate functions, we have to resort to more tedious measures.
+Since the likelihood contains both $h(t)$ and $H(t)$, we need to add these time-varying functions to the sampler.}
+The point of this repository is to show how this can done using Stan's \texttt{functions} block.
 
 Stan was able to recover the chosen parameters for all of the above
 models. For model 3, the more complicated of the three models in terms
@@ -213,6 +210,199 @@ $\vec{\theta}$.
 \emph{Add discussion here about the nuance of the prior parameters, how
 it effected the convergence of model 2 vs model 3, and how to avoid this
 problem in general by thinking carefully about prior parameters.}
+
+
+\appendix
+
+\section{Survival likelihood derivation}
+\label{ap:derivation}
+
+Let $T$, $T \geq 0$ be a continuous random variable representing a random future lifetime. Denote $F(\cdot)$ as the \emph{cumulative distribution function}:
+\begin{align*}
+  F(t) &= P(T \leq t)
+  \text{,}
+\end{align*}
+and $S(T)$ as the \emph{survivor function}
+\begin{align}
+  S(t) &= P(T > t)  \nonumber \\
+       &= 1- F(t)  \label{eq:StFt}
+  \text{,}
+\end{align}
+We have $f(\cdot)$ as the probability density function (pdf), where
+\begin{align*}
+  F(t) &= \int_{0}^{t}{ f(x) dx}
+  \text{,}
+\end{align*}
+which can also be expressed as
+\begin{align}
+  f(t)
+  &= \lim_{\Delta t \rightarrow 0} \frac{ P( t < T \leq t + \Delta t ) }{ \Delta t} \nonumber \\
+  &= \lim_{\Delta t \rightarrow 0} \frac{ F(t+\Delta t) - F(t)  }{ \Delta t} \nonumber \\
+  &=  \frac{d}{dt} F(t) = -\frac{d}{dt} S(t)   \label{eq:ftFtSt}
+  \text{.}
+\end{align}
+This has an intuitive meaning; the probability of an event happening at time $t$ (or rather, in the infinitesimally small time period $t$ to $t + dt$ is):
+\begin{equation}
+P(T=t) \approx d F(t) = f(t) dt \text{.}
+\label{eq:ftintuitive}
+\end{equation}
+For survival studies, it is useful to also define the \emph{hazard rate}:
+\begin{equation*}
+  h(t) =
+     \lim_{\Delta t \to 0}
+     \frac{ P\left( t < T \leq t + \Delta t \; | \; T > t \right) }{\Delta t} \text{.}
+\end{equation*}
+We can also express this as
+\begin{align}
+   h(t)
+   &= \lim_{\Delta t \to 0}
+   \frac{ P( t < T \leq t + \Delta t ) }{ P( T > t)  \Delta t} \nonumber \\
+   &= \lim_{\Delta t \to 0}
+   \frac{ P( t < T \leq t + \Delta t ) }{ \Delta t} \cdot
+   \frac{1 }{ P( T > t) } \nonumber \\
+   &= \frac{ f(t) }{ S(t) } \label{eq:htftSt}
+   \text{.}
+\end{align}
+The hazard rate is conditioned on survival to time $t$, and should not be confused with the pdf, which is not conditioned.
+Whereas the approximate probability of an event happening at time $t$ (or rather, in the infinitesimally small time period $t$ to $t + dt$) is given by (\ref{eq:ftintuitive}), the probability that a subject alive at time $t$ will die at time $t$ (or rather, within the infinitesimally small instant between time $t$ to $t + dt$) is approximately:
+\begin{equation}
+h(t) dt \text{.}
+\label{eq:htintuitive}
+\end{equation}
+The difference is subtle and lies in the conditionality: $h(t)$ is conditioned on the subject being alive at time $t$.
+Therefore, we say $h(t)$ is the mortality experienced by a subject alive at time $t$.
+
+%% Can give some examples here:
+% P(person dying between ages 18-19
+% P(18 year old dying before age 19)
+% subtlety in wording/information available
+
+Each of the functions $f(t)$, $F(t)$, $S(t)$, or $h(t)$ uniquely defines the distribution of $T$ (under some regularity conditions).\footnote{Add the note from Finkelstein's book that shows when $h(t)$ \emph{doesn't} uniquely define the process $T$.}
+That is, by specifying one of these functions, you automatically specify the others, as all relationships
+(\ref{eq:StFt}),
+(\ref{eq:ftFtSt}),
+(\ref{eq:htftSt}) must hold.
+There is one final relationship that ties this all together.
+From (\ref{eq:htftSt}) we have:
+\begin{align*}
+   h(t)
+   &= \frac{ f(t) }{ S(t) }  \\
+   &= \frac{ - \frac{d}{dt} S(t) }{ S(t) }  \quad
+   \text{from (\ref{eq:ftFtSt})} \\
+   &= - \frac{d}{dt} \log(S(t))
+   \text{.}
+\end{align*}
+Integrating both sides:
+\begin{align*}
+  \int_{0}^{t}{ h(x) dx }
+   &= - \int_{0}^{t}{ \left( \frac{d}{dx} \log(S(x)) \right) dx } \\
+   &= -  \bigg[  \log(S(x)) \bigg]_{x=0}^{x=t}    \\
+   &= - \big[ \log(S(t)) - \log(1) \big]  \\
+   &= - \log(S(t))
+\end{align*}
+finally giving
+\begin{align*}
+   \exp\left(- \int_{0}^{t}{ h(x) dx } \right)
+   =
+   \exp\big( -H(t) \big)
+   =
+   S(t)
+   \text{.}
+\end{align*}
+Using earlier results, we also have
+\begin{align*}
+f(t)
+&= h(t)S(t) \qquad \text{from (\ref{eq:htftSt})} \\
+&= h(t) \exp\big( -H(t) \big)
+\end{align*}
+
+
+Now that we have all the necessary definitions, we can derive the likelihood contribution for observation pairs $(v,\delta)$.
+The likelihood is defined as a function of the parameters of interest, which is proportional to the probability of the observations.
+\begin{align*}
+P(V=v, \delta = 1)
+&= P(Y=v, Y \leq C) \\
+&= P(Y=v, v<C) \\
+&= P(Y=v)P(v>C) \qquad \text{(independence)} \\
+&\propto P(Y=v) \\
+&= f(v)dv \\
+&\propto f(v)  \\
+&= h(v) \exp\big( -H(v) \big)
+\end{align*}
+The term $P(v>C)$ is absorbed into the proportionality since it is non-informative; it contains none of the parameters of interest.
+The above method can also be used to construct likelihoods in cases where censoring is informative, such as competing risks models.
+\begin{align*}
+P(V=v, \delta = 0)
+&= P(C=v, Y > C) \\
+&= P(C=v, Y > v) \\
+&= P(C=v)P(Y > v) \qquad \text{(independence)} \\
+&\propto P(Y > v)  \\
+&=  S(v) \\
+&= \exp\big( -H(v) \big)
+\end{align*}
+We can combine these two expressions to form the joint distribution of $(Y, \delta)$
+\begin{align*}
+P(V=v, \delta = 0)
+&=
+\big(f(v)\big)^{\delta}\big( S(v) \big)^{1-\delta} \\
+&=
+\bigg(h(v) \exp\big( -H(v) \big) \bigg)^{\delta}
+\bigg(\exp\big( -H(v) \big) \bigg)^{1-\delta_i}  \\
+&=
+h(v)^{\delta} \exp\big( -H(v) \big)
+\end{align*}
+For a set of $i = 1 \ldots N$ i.i.d observation pairs of
+$(v_i,\delta_i)$, the likelihood  is
+\begin{align*}
+&\phantom{=}
+\prod_{i=1}^{N}{\bigg(
+            h(v_i)^{\delta_i} \exp\big( -H(v_i) \big)
+           \bigg)} \\
+&=
+      \bigg(
+      \prod_{i=1}^{N}{ h(v_i)^{\delta_i} }
+      \bigg)
+           \exp\bigg( -
+\sum_{i=1}^{N}{
+           H(v_i)
+              }
+           \bigg)
+\end{align*}
+with a log likelihood of
+\begin{align}
+&\phantom{=}
+ \sum_{i=1}^{N}{
+               \bigg(
+                 {\delta_i}
+                 \log\big( h(v_i) \big)
+                 -H(v_i)
+               \bigg)
+               }
+\nonumber \\
+&=
+ \left(
+     \sum_{i=1}^{N}{ {\delta_i} \log\big( h(v_i) \big) }
+ \right)
+ -
+ \left(
+     \sum_{i=1}^{N}{ H(v_i)   }
+ \right)
+ \label{eq:NHPP:loglik}
+\end{align}
+This derivation is outlined in \citet{tableman2003survival} and a similar --- but shorter --- derivation appears in \citet[ch.~3.5]{klein2003survival}.
+It is adequate for our purposes.
+
+In section \ref{sec:likelihoodandpriors}, however, we stated our distributional assumption in terms of the Poisson process.%
+\footnote{Our model --- where each subject can only have a single event that causes the subject to exit the study --- is a special case of the Poisson process that allows multiple events per subject.}
+\citet{klein2003survival} explain that counting processes is an alternative way to develop inference techniques for censored and truncated data and it is more general than the derivation we used to arrive at (\ref{eq:NHPP:loglik}).
+It requires a fair amount background, however, including stochastic integration, martingale theory, measure-theoretic probability, and counting processes, but the result is a general theory for event-time processes.
+\citet[ch.~3.6]{klein2003survival} walk through the necessary prerequisites to illustrate how (\ref{eq:NHPP:loglik}) can be derived using counting processes.
+Although their derivation is certainly not devoid of rigour, they still insist that their argument is heuristic, and point to Chapter 2 of \citet{Andersonetal1993} for a precise proof. 
+In this last text the reader can find all of the theory behind the proof of the Non-homogeneous Poisson Process likelihood --- which regularly makes an appearance in survival analysis.
+
+
+\bibliographystyle{chicago}%{abbrvnat}
+\bibliography{Bibliography.bib}
 
 
 \end{document}
