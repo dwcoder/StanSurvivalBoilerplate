@@ -1,26 +1,26 @@
 functions {
 
-  ##################
-  ## Declarations
-  ##################
+  //------------------
+  //-- Declarations
+  //------------------
 
-  # Have to declare the functions before I can use them
+  // Have to declare the functions before I can use them
 
 
   real log_h(real T,  real[] gompertz, real linpred);
 
   real H_t(real T,  real[] gompertz, real linpred);
 
-  ##################
-  ## Definitions
-  ##################
+  //------------------
+  // Definitions
+  //------------------
 
   real surv_dens_log(vector T_and_delta, real[] gompertz, real linpred){
       real T;
       real delta;
 
-      T     <- T_and_delta[1];
-      delta <- T_and_delta[2];
+      T     = T_and_delta[1];
+      delta = T_and_delta[2];
 
       return (delta * log_h(T, gompertz, linpred))
                   -    H_t(T, gompertz, linpred) ;
@@ -31,8 +31,8 @@ functions {
         real B;
         real theta;
 
-        B     <- gompertz[1];
-        theta <- gompertz[2];
+        B     = gompertz[1];
+        theta = gompertz[2];
 
         return log(B) + linpred + theta*T;
 
@@ -41,8 +41,8 @@ functions {
         real B;
         real theta;
 
-        B     <- gompertz[1];
-        theta <- gompertz[2];
+        B     = gompertz[1];
+        theta = gompertz[2];
 
         return (( B*exp(linpred) )/ theta)*( exp(theta*T)-1 ) ;
 
@@ -60,13 +60,13 @@ data {
 }
 parameters {
 
-  # See section 22.5 in the Stan manual for an explanation of array and vector referencing.
-  # Basically:
-  # vector[i] thing[j,k,l]
-  # is referenced thing[j,k,l,i]
-  # That is, thing[j,k,l] is a vector[i]
+  // See section 22.5 in the Stan manual for an explanation of array and vector referencing.
+  // Basically:
+  // vector[i] thing[j,k,l]
+  // is referenced thing[j,k,l,i]
+  // That is, thing[j,k,l] is a vector[i]
 
-  real<lower=0> gompertz[2,2]; # gompertz[group, {1=B, 2=theta}]
+  real<lower=0> gompertz[2,2]; // gompertz[group, {1=B, 2=theta}]
   real beta;
 
 }
